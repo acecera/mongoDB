@@ -1,66 +1,54 @@
 //Dependencies 
-const express = require("express");
-const exphbs = require("express-handlebars");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const cheerio = require("cheerio");
-const request = require("request");
-var mongojs = require("mongojs");
+const express = require('express');
+const exphbs = require('express-handlebars');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cheerio = require('cheerio');
+const request = require('request');
+var mongojs = require('mongojs');
+var logger = require('morgan');
 
 //Initialize express
 var app = express();
 
-//Database configuration 
-var databaseUrl = "scraper";
-var collections = ["scrapedData"];
+//Declaring PORT variable 
+var PORT = process.env.PORT || 5150
 
-//Hook mongojs configuration to the db variable 
-var db = mongojs(databaseUrl, collections);
-db.on("error", function(error) {
-    console.log("Database Error:", error);
+// If deployed, use the deployed database. Otherwise use the local mongoHeadlines database
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
+
+//Set mongoose to leverage built in JavaScript ES6 Promises
+//Connect to the Mongo DB
+mongoose.Promise = Promise;
+mongoose.connect(MONGODB_URI, {
+    useMongoClient: true
+  });
+//Use morgan logger and body parser with app
+app.use(logger('dev'));
+app.use(bodyParser.urlencoded({extended: false}));
+
+//To use handlebars and set handlebars engine
+app.engine('handlebars', exphbs({defaultLayout: 'main'}));
+app.set('view engine', 'handlebars');
+
+//Use express.static to serve the public folder as a static directory
+app.use(express.static)
+
+var db = mongoose.connection;
+
+db.on("error", function (error) {
+    console.log("Mongoose Error: ", error);
 });
 
-//Retrieve data from the db
-app.get("/all", function(req, res) {
-    db.scrapedData.find({}, function(error, found) {
-        if(error) {
-            console.log(error);
-        }
-        else {
-            res.json(found);
-        }
-    });
+db.once("open", function() {
+    console.log("Mongoose connection successful.");
 });
 
-//Scrape data from chosen site and store it into the mongo db 
-app.get("/scrape", function(req, res) {
-    request("https://www.washingtonpost.com/", function(error, response, html) {
-        var $ = cheerio.load(html);
-        $(".c0kRRTkuz1j20q").each(function(i, element) {
-            var $a = $(element).children('a');
-            var title = $a.text();
-            var link = $a.attr("href");
-            if(title && link) {
-                db.scrapedData.insert({
-                    title: title, 
-                    link: link
-                },
-                function(err, inserted) {
-                    if (err) {
-                        console.log(err);
-                    }
-                    else {
-                        console.log(inserted);
-                    }
-                });
-            }
-        });
-    });
-    res.send("Scrape Complete");
-});
+//Require the routes in controller file 
+require('./controllers/articlesController.js')(app);
 
 //Listen on port 5150
-app.listen(5150, function() {
+app.listen(PORT, function() {
     console.log("App running on port 5150!");
 });
 
