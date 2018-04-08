@@ -1,0 +1,30 @@
+<div class="container">
+    <div class="header clearfix">
+        <nav>
+            <ul class="nav nav-pills float-right">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/">Home <span class="sr-only">(homepage)</span></a> 
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="https://github.com/acecera/mongoDB.git" target="_blank">Github <span class="sr-only">(current)</span></a> 
+                </li>
+            </ul>
+        </nav>
+        <h3 class="text-muted">Mongo Web Scraper</h3>
+    </div>
+
+    {{#each result}}
+    <div class="card news-section">
+        <a href="{{this.link}}">
+            <h4 class="card-header">{{this.title}}</h4>
+        </a>
+        <div class="card-block">
+            <a href="{{this.link}}">
+                <p class="card-text">{{this.articleSummary}}</p>
+            </a>
+            <br>
+            <a href="/articles/{{this._id}}" class="btn btn-primary">Comment</a>
+        </div>
+    </div>
+</div>
+{{/each}}
