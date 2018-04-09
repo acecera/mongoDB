@@ -32,7 +32,7 @@ app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
 
 //Use express.static to serve the public folder as a static directory
-app.use(express.static)
+app.use(express.static("public"));
 
 var db = mongoose.connection;
 
