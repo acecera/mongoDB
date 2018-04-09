@@ -36,6 +36,7 @@ module.exports = function(app) {
         res.redirect('/');
     });
 
+    //Get route to scrape off mongoDB
     app.get("/articles", function(req, res) {
         Article.find({}, function(err, doc) {
             if(err) {
@@ -47,5 +48,65 @@ module.exports = function(app) {
         .sort({'_id': -1});
     });
 
-    
-}
+    //Grab article by its id
+    app.get('/articles/:id', function(req,res) {
+        Article.findOne({"_id": req.params.id})
+        .populate('comment')
+        .exec(function(err, doc) {
+            if (err) {
+                console.log(err);
+            } else {
+                res.render("comments", {result: doc});
+            }
+        });
+    });
+
+    //Post route to create a new comment 
+    app.post('/articles/:id', function(req,res){
+        Comment.create(req.body, function(err, doc) {
+            if (err) {
+                console.log(err);
+            } else {
+                Article.findOneAndUpdate({
+                    "_id": req.params.id
+                }, {
+                    $push: {
+                        "comment": doc._id
+                    }
+                }, {
+                    upsert: true
+                }).exec(function(err, doc) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        res.redirect('back');
+                    }
+                });
+            }
+        });
+    });
+
+    //Delete route to delete comment
+    app.delete('/articles/:id/:commentId', function(req, res) {
+        Comment.findByIdAndRemove(req.params.commentId, function(err, doc) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(doc);
+                Article.findOneAndUpdate({
+                    "_id": req.params.id
+                }, {
+                    $pull: {
+                        "comment": doc._id
+                    }
+                }).exec(function(err, doc) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(doc);
+                    }
+                });
+            }
+        });
+    });
+};
