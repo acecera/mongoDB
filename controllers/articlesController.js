@@ -48,7 +48,7 @@ module.exports = function(app) {
         .sort({'_id': -1});
     });
 
-    //Grab article by its id
+    //Get route to grab article by its id
     app.get('/articles/:id', function(req,res) {
         Article.findOne({"_id": req.params.id})
         .populate('comment')
