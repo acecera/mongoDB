@@ -1,6 +1,6 @@
-$(document).ready(function(e) {
-    $(".delete-button").on("click", function(e) {
-        e.preventDefault();
+$(document).ready(function() {
+    $(".delete-button").on("click", function(event) {
+        event.preventDefault();
         var qURL = location.href + '/' + $(this).data('comment');
         $ajax({
             method: "DELETE", 
