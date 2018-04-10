@@ -1,7 +1,7 @@
 var request = require("request");
 var cheerio = require('cheerio');
-var Article = require("../models/Article.js");
-var Comment = require("../models/Comment.js");
+var Article = require("../models/article.js");
+var Comment = require("../models/comment.js");
 
 module.exports = function(app) {
     app.get('/', function(req, res) {
@@ -9,19 +9,21 @@ module.exports = function(app) {
     });
 
     app.get("/scrape", function(req, res) {
-        request("http://www.latimes.com/", function(error, response, html) {
+        request("https://www.washingtonpost.com/", function(error, response, html) {
             var $ = cheerio.load(html);
             var result = [];
-            $("div.container.padded-container").each(function(i, element) {
-                var title = $(element).text().children("h5").children("a").attr("href");
-                var link = $(element).text().children("h5").children("a").attr("href");
-                var articleSummary = $(element).children("h5").children("p.preview-text spaced-top story-preview spaced-md");
-
-                if(title && link && articleSummary) {
+            $("div.headline").each(function(i, element) {
+                var title = $(this).children("a").text();
+                var link = $(this).children("a").attr("href");
+                // var articleSummary = $(this).children("h5").children("p.preview-text spaced-top story-preview spaced-md");
+                console.log(title);
+                console.log(link);
+                // console.log(articleSummary);
+                if(title && link) {
                     var result = [];
                     result.title = title;
                     result.link = link;
-                    result.articleSummary = articleSummary;
+                    // result.articleSummary = articleSummary;
 
                     Article.create(result, function (err, doc) {
                         if (err) {
